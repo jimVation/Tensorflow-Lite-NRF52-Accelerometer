@@ -1,0 +1,11 @@
+*.jlink
+*.txt
+*.ind
+*.ld
+*.d
+*.o
+*.emSession
+*.map
+*.elf
+*.asm
+
