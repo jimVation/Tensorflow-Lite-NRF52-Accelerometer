@@ -2,16 +2,20 @@
 #include "tensorflow/lite/micro/system_setup.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/all_ops_resolver.h"
+#include "tensorflow/lite/micro/examples/magic_wand/magic_wand_model_data.h"
 
 #include "TFLite_Top.h"
-#include "sine_wave_model_data.h"
+
+#define CHANNEL_NUMBER 3
 
 const tflite::Model* model = nullptr;
 tflite::MicroInterpreter* interpreter = nullptr;
-TfLiteTensor* input = nullptr;
-TfLiteTensor* output = nullptr;
+TfLiteTensor* model_input = nullptr;
+int input_length;
 
-constexpr int kTensorArenaSize = 2056;
+// Create an area of memory to use for input, output, and intermediate arrays.
+// The size of this will depend on the model you're using, and may need to be determined by experimentation.
+constexpr int kTensorArenaSize = 60 * 1024;
 alignas(16) uint8_t tensor_arena[kTensorArenaSize];
 
 extern "C" void setup_tf_system(void)
@@ -20,7 +24,7 @@ extern "C" void setup_tf_system(void)
 
   // Map the model into a usable data structure. This doesn't involve any
   // copying or parsing, it's a very lightweight operation.
-  model = tflite::GetModel(g_sine_wave_data);
+  model = tflite::GetModel(g_magic_wand_model_data);
 
   if (model->version() != TFLITE_SCHEMA_VERSION) 
   {
@@ -29,44 +33,61 @@ extern "C" void setup_tf_system(void)
     return;
   }
 
-  // This pulls in all the operation implementations we need.
-  // NOLINTNEXTLINE(runtime-global-variables)
-  static tflite::AllOpsResolver resolver;
+  // Pull in only the operation implementations we need.
+  // This relies on a complete list of all the ops needed by this graph.
+  // An easier approach is to just use the AllOpsResolver, but this will
+  // incur some penalty in code space for op implementations that are not
+  // needed by this graph.
+  static tflite::MicroMutableOpResolver<5> micro_op_resolver;  // NOLINT
+  micro_op_resolver.AddConv2D();
+  micro_op_resolver.AddDepthwiseConv2D();
+  micro_op_resolver.AddFullyConnected();
+  micro_op_resolver.AddMaxPool2D();
+  micro_op_resolver.AddSoftmax();
 
   // Build an interpreter to run the model with.
-  static tflite::MicroInterpreter static_interpreter(model, resolver, tensor_arena, kTensorArenaSize);
+  static tflite::MicroInterpreter static_interpreter(model, micro_op_resolver, tensor_arena, kTensorArenaSize);
   interpreter = &static_interpreter;
 
   // Allocate memory from the tensor_arena for the model's tensors.
   TfLiteStatus allocate_status = interpreter->AllocateTensors();
+
   if (allocate_status != kTfLiteOk) 
   {
     MicroPrintf("AllocateTensors() failed");
     return;
   }
 
-  // Obtain pointers to the model's input and output tensors.
-  input = interpreter->input(0);
-  output = interpreter->output(0);
-}
-
-extern "C" void evaluate_tf_model(float operand)
-{
-  // Place the input in the model's input tensor
-  input->data.f[0] = operand;
-
-  // Run inference, and report any error
-  TfLiteStatus invoke_status = interpreter->Invoke();
-  if (invoke_status != kTfLiteOk) 
+  // Obtain pointer to the model's input tensor.
+  model_input = interpreter->input(0);
+  if ((model_input->dims->size != 4) || (model_input->dims->data[0] != 1) ||
+      (model_input->dims->data[1] != 128) || (model_input->dims->data[2] != CHANNEL_NUMBER) ||
+      (model_input->type != kTfLiteFloat32)) 
   {
-    MicroPrintf("Invoke failed on operand: %f\n", static_cast<double>(operand));
+    MicroPrintf("Bad input tensor parameters in model");
     return;
   }
 
-  // Obtain the  output from model's output tensor
-  float y = output->data.f[0];
-
-  // Log the current X and Y values
-  MicroPrintf("x_value: %f, y_value: %f", operand, y);  
+  input_length = model_input->bytes / sizeof(float);
 }
+
+//extern "C" void evaluate_tf_model(float operand)
+//{
+//  // Place the input in the model's input tensor
+//  input->data.f[0] = operand;
+
+//  // Run inference, and report any error
+//  TfLiteStatus invoke_status = interpreter->Invoke();
+//  if (invoke_status != kTfLiteOk) 
+//  {
+//    MicroPrintf("Invoke failed on operand: %f\n", static_cast<double>(operand));
+//    return;
+//  }
+
+//  // Obtain the  output from model's output tensor
+//  float y = output->data.f[0];
+
+//  // Log the current X and Y values
+//  MicroPrintf("x_value: %f, y_value: %f", operand, y);  
+//}
 

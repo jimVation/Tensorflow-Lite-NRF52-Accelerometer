@@ -145,7 +145,7 @@ uint32_t lsm303agr_xl_operating_mode_set(lsm303agr_op_md_a_t val)
 /**
   * @brief  Acceleration set of data available.[get]
   *
-  * @param  val    Get the values of zyxda in reg STATUS_REG_A.(ptr)
+  * @param  val    Get the value of zyxda in reg STATUS_REG_A.(ptr)
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
   */

@@ -14,6 +14,7 @@
 #include "TFLite_Top.h"
 #include "lsm303_interface.h"
 
+#define NUM_ACCEL_DATA_ELEMENTS    (128 * 3)
 
 //********************************************************************************************
 /**@brief Function for initializing low frequency clock.
@@ -33,6 +34,9 @@ void clock_initialization()
 //********************************************************************************************
 int main(void)
 {
+    float accel_data[NUM_ACCEL_DATA_ELEMENTS] = {0};
+    uint32_t next_data_index = 0;
+
     clock_initialization();
 
     uint32_t err_code = app_timer_init();
@@ -50,16 +54,25 @@ int main(void)
     setup_tf_system();
     NRF_LOG_INFO("Tensorflow setup complete");
 
+
     while (true)
     {
+        if (read_data_lsm303(&accel_data[next_data_index]))
+        {    
+        // call inference every time there is new data
+            next_data_index += 3;
+
+            if ((next_data_index + 1) >= NUM_ACCEL_DATA_ELEMENTS)
+            {
+                next_data_index = 0;
+            }
+        }
+
         NRF_LOG_FLUSH();
+
         //__SEV();
         //__WFE();
         //__WFE();
-
-        nrf_delay_ms(1000);
-
-        read_data_lsm303();
     }
 }
 

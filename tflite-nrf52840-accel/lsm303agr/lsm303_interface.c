@@ -19,11 +19,6 @@
 /* TWI instance. */
 static const nrf_drv_twi_t m_twi = NRF_DRV_TWI_INSTANCE(TWI_INSTANCE_ID);
 
-static float acceleration_g[NUM_AXIS];
-
-int32_t sample_interval_real_us = 0;
-static bool device_init_correctly = false;
-
 //********************************************************************************************
 void twi_init (void)
 {
@@ -68,7 +63,7 @@ bool init_lsm303(void)
     }    
 
     // set data rate for accelermeter
-	if (lsm303agr_xl_data_rate_set(LSM303AGR_XL_ODR_100Hz) < 0) 
+	if (lsm303agr_xl_data_rate_set(LSM303AGR_XL_ODR_1Hz) < 0) 
     {
         NRF_LOG_INFO("Accel data rate set failed");
 		return false;
@@ -96,18 +91,16 @@ bool init_lsm303(void)
     }
 
     NRF_LOG_INFO("Sensor LSM303AGR init OK");
-    device_init_correctly = true;
 
     return true;
 }
 
 //************************************************************************************
 // Get data from sensor, convert and call callback to handle
-// Return 0 on success, non-zero on error
-uint8_t read_data_lsm303(void)
+// Return true on new data obtained
+bool read_data_lsm303(float* accel_data)
 {
-    uint8_t ready_flag;
-    int ret_val = 0;
+    uint8_t ready_flag = 0;
     int16_t data_raw_acceleration[NUM_AXIS];
 
     lsm303agr_xl_data_ready_get(&ready_flag);
@@ -117,21 +110,19 @@ uint8_t read_data_lsm303(void)
         // Read acceleration data
         memset(data_raw_acceleration, 0x00, 3 * sizeof(int16_t));  // Zero each time in case the read fails
         lsm303agr_acceleration_raw_get(data_raw_acceleration);
-        acceleration_g[0] = lsm303agr_from_fs_2g_hr_to_mg(data_raw_acceleration[0]) / 1000.f;
-        acceleration_g[1] = lsm303agr_from_fs_2g_hr_to_mg(data_raw_acceleration[1]) / 1000.f;
-        acceleration_g[2] = lsm303agr_from_fs_2g_hr_to_mg(data_raw_acceleration[2]) / 1000.f;
+        accel_data[0] = lsm303agr_from_fs_2g_hr_to_mg(data_raw_acceleration[0]) / 1000.f;
+        accel_data[1] = lsm303agr_from_fs_2g_hr_to_mg(data_raw_acceleration[1]) / 1000.f;
+        accel_data[2] = lsm303agr_from_fs_2g_hr_to_mg(data_raw_acceleration[2]) / 1000.f;
 
-        NRF_LOG_INFO("X = " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(acceleration_g[0]));
-        NRF_LOG_INFO("Y = " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(acceleration_g[1]));
-        NRF_LOG_INFO("Z = " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(acceleration_g[2]));
+        NRF_LOG_INFO("X = " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(accel_data[0]));
+        NRF_LOG_INFO("Y = " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(accel_data[1]));
+        NRF_LOG_INFO("Z = " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(accel_data[2]));
         NRF_LOG_INFO(""); // Blank line
-    }
-    else 
-    {
-        NRF_LOG_INFO("Data not ready");
+
+        return true;
     }
 
-    return ret_val;
+    return false;
 }
 
 //**********************************************************************************************
