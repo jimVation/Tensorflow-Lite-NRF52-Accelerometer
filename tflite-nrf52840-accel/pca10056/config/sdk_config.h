@@ -2200,7 +2200,7 @@
  
 
 #ifndef TWI0_USE_EASY_DMA
-#define TWI0_USE_EASY_DMA 1
+#define TWI0_USE_EASY_DMA 0
 #endif
 
 // </e>
@@ -2224,13 +2224,13 @@
 // <e> NRFX_TWIM_ENABLED - nrfx_twim - TWIM peripheral driver
 //==========================================================
 #ifndef NRFX_TWIM_ENABLED
-#define NRFX_TWIM_ENABLED 1
+#define NRFX_TWIM_ENABLED 0
 #endif
 // <q> NRFX_TWIM0_ENABLED  - Enable TWIM0 instance
  
 
 #ifndef NRFX_TWIM0_ENABLED
-#define NRFX_TWIM0_ENABLED 1
+#define NRFX_TWIM0_ENABLED 0
 #endif
 
 // <q> NRFX_TWIM1_ENABLED  - Enable TWIM1 instance
@@ -2379,7 +2379,7 @@
 // <e> NRFX_TWI_CONFIG_LOG_ENABLED - Enables logging in the module.
 //==========================================================
 #ifndef NRFX_TWI_CONFIG_LOG_ENABLED
-#define NRFX_TWI_CONFIG_LOG_ENABLED 1
+#define NRFX_TWI_CONFIG_LOG_ENABLED 0
 #endif
 // <o> NRFX_TWI_CONFIG_LOG_LEVEL  - Default Severity level
  
@@ -2390,7 +2390,7 @@
 // <4=> Debug 
 
 #ifndef NRFX_TWI_CONFIG_LOG_LEVEL
-#define NRFX_TWI_CONFIG_LOG_LEVEL 3
+#define NRFX_TWI_CONFIG_LOG_LEVEL 4
 #endif
 
 // <o> NRFX_TWI_CONFIG_INFO_COLOR  - ANSI escape code prefix.
@@ -2481,7 +2481,7 @@
 // <e> TWI_CONFIG_LOG_ENABLED - Enables logging in the module.
 //==========================================================
 #ifndef TWI_CONFIG_LOG_ENABLED
-#define TWI_CONFIG_LOG_ENABLED 1
+#define TWI_CONFIG_LOG_ENABLED 0
 #endif
 // <o> TWI_CONFIG_LOG_LEVEL  - Default Severity level
  
@@ -2492,7 +2492,7 @@
 // <4=> Debug 
 
 #ifndef TWI_CONFIG_LOG_LEVEL
-#define TWI_CONFIG_LOG_LEVEL 3
+#define TWI_CONFIG_LOG_LEVEL 4
 #endif
 
 // <o> TWI_CONFIG_INFO_COLOR  - ANSI escape code prefix.

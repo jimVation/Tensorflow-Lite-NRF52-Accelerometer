@@ -3,24 +3,14 @@
 #include <stdlib.h>
 
 #include "lsm303_interface.h"
-#include "lsm303agr_reg.h"
+#include "lsm303agr_driver.h"
 
 #include "nrf_log.h"
 #include "nrf_gpio.h"
 #include "nrf_drv_twi.h"
 
-// Constant defines
-#define CONVERT_G_TO_MS2    9.80665f
-
-#define ACC_SAMPLE_TIME_MS  0.912f
-#define FLASH_WRITE_TIME_MS 0.5036f
-
-#define ACC_SAMPLE_TIME_US  255
-#define FLASH_WRITE_TIME_US 543
-#define CORRECTION_TIME_US  400
-
-#define N_AXIS_SAMPLED 3
-// Not sure why this address is needed for the ST board, rather than actual accelerometer address
+#define NUM_AXIS 3
+// Address is in 7 bit form, rather than 8 bit form. Shift left 1 to match accelerometer address given in data sheet.
 #define LSM303AGR_X_NUCLEO_IKS01A2_ADDRESS     (0x19)
 
 /* TWI instance ID. */
@@ -29,14 +19,7 @@
 /* TWI instance. */
 static const nrf_drv_twi_t m_twi = NRF_DRV_TWI_INSTANCE(TWI_INSTANCE_ID);
 
-// Private function prototypes
-static int32_t platform_write(void *handle, uint8_t reg, uint8_t *bufp, uint16_t length);
-static int32_t platform_read(void *handle, uint8_t reg, uint8_t *bufp, uint16_t length);
-
-stmdev_ctx_t dev_ctx;
-
-static float acceleration_g[N_AXIS_SAMPLED];
-int16_t data_raw_acceleration[N_AXIS_SAMPLED];
+static float acceleration_g[NUM_AXIS];
 
 int32_t sample_interval_real_us = 0;
 static bool device_init_correctly = false;
@@ -66,57 +49,53 @@ bool init_lsm303(void)
 {
     uint8_t device_id;
 
-    dev_ctx.write_reg = platform_write;
-    dev_ctx.read_reg = platform_read;
-    dev_ctx.handle = NULL;
-
     // read chip ID
-    if (lsm303agr_xl_device_id_get(&dev_ctx, &device_id) < 0) 
+    if (platform_read(LSM303AGR_WHO_AM_I_A, &device_id) < 0)
     {
-        NRF_LOG_INFO("Failed getting device id, \n");
+        NRF_LOG_INFO("Failed getting device id");
         return false;
     }
 
     // Check chip ID
     if (device_id != LSM303AGR_ID_XL) 
     {
-        NRF_LOG_INFO("Wrong device id. Expected %u. Received %u\n", LSM303AGR_ID_XL, device_id);
+        NRF_LOG_INFO("Wrong device id. Expected 0x%x. Received 0x%x", LSM303AGR_ID_XL, device_id);
         return false;
     }
     else 
     {
-        NRF_LOG_INFO("Device ID correct\n");
+        NRF_LOG_INFO("Device ID correct, 0x%x", LSM303AGR_ID_XL);
     }    
 
     // set data rate for accelermeter
-	if (lsm303agr_xl_data_rate_set(&dev_ctx, LSM303AGR_XL_ODR_100Hz) < 0) 
+	if (lsm303agr_xl_data_rate_set(LSM303AGR_XL_ODR_100Hz) < 0) 
     {
-        NRF_LOG_INFO("Accel data rate set failed\n");
+        NRF_LOG_INFO("Accel data rate set failed");
 		return false;
 	}
 
     // set scale for accelerometer
-    if (lsm303agr_xl_full_scale_set(&dev_ctx, LSM303AGR_2g) < 0) 
+    if (lsm303agr_xl_full_scale_set(LSM303AGR_2g) < 0) 
     {
-        NRF_LOG_INFO("Accel scale set failed\n");
+        NRF_LOG_INFO("Accel scale set failed");
 		return false;
 	}
 
     // set block update for accelerometer
-    if (lsm303agr_xl_block_data_update_set(&dev_ctx, PROPERTY_ENABLE) < 0) 
+    if (lsm303agr_xl_block_data_update_set(PROPERTY_ENABLE) < 0) 
     {
-        NRF_LOG_INFO("Accel block update set failed\n");
+        NRF_LOG_INFO("Accel block update set failed");
 		return false;
     }
 
     // set operating mode for accelerometer
-    if (lsm303agr_xl_operating_mode_set(&dev_ctx, LSM303AGR_HR_12bit) < 0) 
+    if (lsm303agr_xl_operating_mode_set(LSM303AGR_HR_12bit) < 0) 
     {
-        NRF_LOG_INFO("Accel operating mode set failed\n");
+        NRF_LOG_INFO("Accel operating mode set failed");
 		return false;        
     }
 
-    NRF_LOG_INFO("Sensor LSM303AGR init OK\n");
+    NRF_LOG_INFO("Sensor LSM303AGR init OK");
     device_init_correctly = true;
 
     return true;
@@ -129,81 +108,59 @@ uint8_t read_data_lsm303(void)
 {
     uint8_t ready_flag;
     int ret_val = 0;
+    int16_t data_raw_acceleration[NUM_AXIS];
 
-    lsm303agr_xl_data_ready_get(&dev_ctx, &ready_flag);
+    lsm303agr_xl_data_ready_get(&ready_flag);
 
     if(ready_flag)
     {
-        /* Read acceleration data */
-        memset(data_raw_acceleration, 0x00, 3 * sizeof(int16_t));
-        lsm303agr_acceleration_raw_get(&dev_ctx, data_raw_acceleration);
+        // Read acceleration data
+        memset(data_raw_acceleration, 0x00, 3 * sizeof(int16_t));  // Zero each time in case the read fails
+        lsm303agr_acceleration_raw_get(data_raw_acceleration);
         acceleration_g[0] = lsm303agr_from_fs_2g_hr_to_mg(data_raw_acceleration[0]) / 1000.f;
         acceleration_g[1] = lsm303agr_from_fs_2g_hr_to_mg(data_raw_acceleration[1]) / 1000.f;
         acceleration_g[2] = lsm303agr_from_fs_2g_hr_to_mg(data_raw_acceleration[2]) / 1000.f;
 
-        NRF_LOG_INFO("X= %f, Y= %f, Z= %f\r\n", acceleration_g[0], acceleration_g[1], acceleration_g[2]);
+        NRF_LOG_INFO("X = " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(acceleration_g[0]));
+        NRF_LOG_INFO("Y = " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(acceleration_g[1]));
+        NRF_LOG_INFO("Z = " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(acceleration_g[2]));
+        NRF_LOG_INFO(""); // Blank line
     }
     else 
     {
-        NRF_LOG_INFO("Data not ready\n");
+        NRF_LOG_INFO("Data not ready");
     }
 
     return ret_val;
-}
-
-//****************************************************************************************
-// Setup timing and data handle callback function
-// return true on success, false on failure
-bool sample_start_lsm303(uint32_t sample_interval_ms)
-{
-    if(device_init_correctly == false) 
-    {
-        NRF_LOG_INFO("\r\nERR: Failed to get data, is your accelerometer connected?\r\n");
-        return false;
-    }
-
-    sample_interval_real_us = (int32_t)(sample_interval_ms * 1000);
-    sample_interval_real_us = sample_interval_real_us - (FLASH_WRITE_TIME_US + ACC_SAMPLE_TIME_US + CORRECTION_TIME_US);
-
-    NRF_LOG_INFO("sample_interval_real_us = %d us\n", sample_interval_real_us);
-
-    return true;
-}
-
-//*************************************************************************************
-// Setup payload header
-bool setup_data_sampling_lsm303(void)
-{
-    return true;
 }
 
 //**********************************************************************************************
 // Write generic device register (platform dependent)
 //
 // Params:
-// handle    customizable argument. In this examples is used in order to select the correct sensor bus handler.
 // reg       register to write
 // bufp      pointer to data to write in register reg
 // length    number of consecutive register to write
-static int32_t platform_write(void *handle, uint8_t reg, uint8_t *bufp, uint16_t length)
+uint32_t platform_write(uint8_t reg, uint8_t *bufp)
 {
-    uint8_t temp_buf[10] = {0};
+    uint8_t temp_buf[2] = {0};
     temp_buf[0] = reg;
-    memcpy(&temp_buf[1], bufp, length);
-    return nrf_drv_twi_tx(&m_twi, LSM303AGR_X_NUCLEO_IKS01A2_ADDRESS, temp_buf, (uint8_t)(length+1), false);
+    memcpy(&temp_buf[1], bufp, 1);
+    return nrf_drv_twi_tx(&m_twi, LSM303AGR_X_NUCLEO_IKS01A2_ADDRESS, temp_buf, 2, false);
 }
 
 //**********************************************************************************************
-// Read generic device register (platform dependent)
+// Read one byte from target device register (platform dependent)
 // 
 // Params:
-// handle    customizable argument. In this examples is used in order to select the correct sensor bus handler.
-// reg       register to read
-// bufp      pointer to buffer that store the data read
-// length    number of consecutive register to read
-static int32_t platform_read(void *handle, uint8_t reg, uint8_t *bufp, uint16_t length)
+// read_register_address       register to read
+// bufp      pointer to buffer to store incoming data
+uint32_t platform_read(uint8_t read_register_address, uint8_t *bufp)
 {
-    ret_code_t err_code = nrf_drv_twi_rx(&m_twi, LSM303AGR_X_NUCLEO_IKS01A2_ADDRESS, &reg, (uint8_t)length);
+    // write address of register to read
+    nrf_drv_twi_tx(&m_twi, LSM303AGR_X_NUCLEO_IKS01A2_ADDRESS, &read_register_address, 1, false);
+    // read back register contents
+    ret_code_t err_code = nrf_drv_twi_rx(&m_twi, LSM303AGR_X_NUCLEO_IKS01A2_ADDRESS, bufp, 1);
     APP_ERROR_CHECK(err_code);
     return err_code;
 }

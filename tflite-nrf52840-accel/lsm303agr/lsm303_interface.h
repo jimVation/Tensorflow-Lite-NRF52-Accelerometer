@@ -7,7 +7,8 @@
 void twi_init (void);
 bool init_lsm303(void);
 uint8_t read_data_lsm303(void);
-bool sample_start_lsm303(uint32_t sample_interval_ms);
-bool setup_data_sampling_lsm303(void);
+
+uint32_t platform_write(uint8_t reg, uint8_t *bufp);
+uint32_t platform_read(uint8_t read_register_address, uint8_t *bufp);
 
 #endif
