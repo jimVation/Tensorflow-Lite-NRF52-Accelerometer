@@ -51,9 +51,7 @@
     <folder Name="Board Definition">
       <file file_name="C:/Nordic_SDKs/nRF5_SDK_17.0.2_d674dde/components/boards/boards.c" />
     </folder>
-    <folder Name="Board Support">
-      <file file_name="C:/Nordic_SDKs/nRF5_SDK_17.0.2_d674dde/components/libraries/bsp/bsp.c" />
-    </folder>
+    <folder Name="Board Support" />
     <folder Name="None">
       <file file_name="C:/Nordic_SDKs/nRF5_SDK_17.0.2_d674dde/modules/nrfx/mdk/ses_startup_nrf52840.s" />
       <file file_name="C:/Nordic_SDKs/nRF5_SDK_17.0.2_d674dde/modules/nrfx/mdk/ses_startup_nrf_common.s" />
@@ -262,13 +260,10 @@
       <file file_name="C:/Nordic_SDKs/nRF5_SDK_17.0.2_d674dde/modules/nrfx/drivers/src/prs/nrfx_prs.c" />
       <file file_name="C:/Nordic_SDKs/nRF5_SDK_17.0.2_d674dde/modules/nrfx/drivers/src/nrfx_twi.c" />
       <file file_name="C:/Nordic_SDKs/nRF5_SDK_17.0.2_d674dde/modules/nrfx/drivers/include/nrfx_twi.h" />
-      <file file_name="C:/Nordic_SDKs/nRF5_SDK_17.0.2_d674dde/modules/nrfx/drivers/src/nrfx_twim.c" />
-      <file file_name="C:/Nordic_SDKs/nRF5_SDK_17.0.2_d674dde/modules/nrfx/drivers/include/nrfx_twim.h" />
       <file file_name="C:/Nordic_SDKs/nRF5_SDK_17.0.2_d674dde/modules/nrfx/drivers/src/nrfx_uart.c" />
       <file file_name="C:/Nordic_SDKs/nRF5_SDK_17.0.2_d674dde/modules/nrfx/drivers/src/nrfx_uarte.c" />
     </folder>
     <folder Name="nRF_Libraries">
-      <file file_name="C:/Nordic_SDKs/nRF5_SDK_17.0.2_d674dde/components/libraries/button/app_button.c" />
       <file file_name="C:/Nordic_SDKs/nRF5_SDK_17.0.2_d674dde/components/libraries/util/app_error.c" />
       <file file_name="C:/Nordic_SDKs/nRF5_SDK_17.0.2_d674dde/components/libraries/util/app_error_handler_gcc.c" />
       <file file_name="C:/Nordic_SDKs/nRF5_SDK_17.0.2_d674dde/components/libraries/util/app_error_weak.c" />
