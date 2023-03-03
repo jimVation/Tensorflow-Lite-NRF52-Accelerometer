@@ -110,9 +110,9 @@ bool read_data_lsm303(float* accel_data)
         // Read acceleration data
         memset(data_raw_acceleration, 0x00, 3 * sizeof(int16_t));  // Zero each time in case the read fails
         lsm303agr_acceleration_raw_get(data_raw_acceleration);
-        accel_data[0] = lsm303agr_from_fs_2g_hr_to_mg(data_raw_acceleration[0]) / 1000.f;
-        accel_data[1] = lsm303agr_from_fs_2g_hr_to_mg(data_raw_acceleration[1]) / 1000.f;
-        accel_data[2] = lsm303agr_from_fs_2g_hr_to_mg(data_raw_acceleration[2]) / 1000.f;
+        accel_data[0] = lsm303agr_from_fs_2g_hr_to_mg(data_raw_acceleration[0]);
+        accel_data[1] = lsm303agr_from_fs_2g_hr_to_mg(data_raw_acceleration[1]);
+        accel_data[2] = lsm303agr_from_fs_2g_hr_to_mg(data_raw_acceleration[2]);
 
         //NRF_LOG_INFO("X = " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(accel_data[0]));
         //NRF_LOG_INFO("Y = " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(accel_data[1]));
