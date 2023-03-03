@@ -2,9 +2,11 @@
 #include "tensorflow/lite/micro/system_setup.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/all_ops_resolver.h"
-#include "tensorflow/lite/micro/examples/magic_wand/magic_wand_model_data.h"
+#include "magic_wand_model_data.h"
 
+#include "gesture_predictor.h"
 #include "TFLite_Top.h"
+#include "collect_accel_data.h"
 
 #define CHANNEL_NUMBER 3
 
@@ -35,9 +37,8 @@ extern "C" void setup_tf_system(void)
 
   // Pull in only the operation implementations we need.
   // This relies on a complete list of all the ops needed by this graph.
-  // An easier approach is to just use the AllOpsResolver, but this will
-  // incur some penalty in code space for op implementations that are not
-  // needed by this graph.
+  // An easier approach is to just use the AllOpsResolver, but this will incur some penalty in 
+  // code space for op implementations that are not needed by this graph.
   static tflite::MicroMutableOpResolver<5> micro_op_resolver;  // NOLINT
   micro_op_resolver.AddConv2D();
   micro_op_resolver.AddDepthwiseConv2D();
@@ -71,23 +72,33 @@ extern "C" void setup_tf_system(void)
   input_length = model_input->bytes / sizeof(float);
 }
 
-//extern "C" void evaluate_tf_model(float operand)
-//{
-//  // Place the input in the model's input tensor
-//  input->data.f[0] = operand;
+extern "C" int32_t run_tf_model(float* new_accel_data)
+{
+    static int num_runs = 0;
 
-//  // Run inference, and report any error
-//  TfLiteStatus invoke_status = interpreter->Invoke();
-//  if (invoke_status != kTfLiteOk) 
-//  {
-//    MicroPrintf("Invoke failed on operand: %f\n", static_cast<double>(operand));
-//    return;
-//  }
+    if (update_accel_data(model_input->data.f, new_accel_data, input_length, false))
+    {
+        // Run inference, and report any error.
+        TfLiteStatus invoke_status = interpreter->Invoke();
 
-//  // Obtain the  output from model's output tensor
-//  float y = output->data.f[0];
+        //if (invoke_status != kTfLiteOk) 
+        //{
+        //    MicroPrintf("Invoke failed");
+        //    return -1;
+        //}
 
-//  // Log the current X and Y values
-//  MicroPrintf("x_value: %f, y_value: %f", operand, y);  
-//}
+        // Analyze the results to obtain a prediction
+        int gesture_index = PredictGesture(interpreter->output(0)->data.f);
+
+        num_runs++;
+
+        MicroPrintf("Runs %d, %d", num_runs, gesture_index);
+
+        return gesture_index;
+    }
+    else
+    {
+        return -1;
+    }
+}
 

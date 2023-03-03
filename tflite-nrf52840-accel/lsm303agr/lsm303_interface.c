@@ -63,7 +63,7 @@ bool init_lsm303(void)
     }    
 
     // set data rate for accelermeter
-	if (lsm303agr_xl_data_rate_set(LSM303AGR_XL_ODR_1Hz) < 0) 
+	if (lsm303agr_xl_data_rate_set(LSM303AGR_XL_ODR_25Hz) < 0) 
     {
         NRF_LOG_INFO("Accel data rate set failed");
 		return false;
@@ -114,10 +114,10 @@ bool read_data_lsm303(float* accel_data)
         accel_data[1] = lsm303agr_from_fs_2g_hr_to_mg(data_raw_acceleration[1]) / 1000.f;
         accel_data[2] = lsm303agr_from_fs_2g_hr_to_mg(data_raw_acceleration[2]) / 1000.f;
 
-        NRF_LOG_INFO("X = " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(accel_data[0]));
-        NRF_LOG_INFO("Y = " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(accel_data[1]));
-        NRF_LOG_INFO("Z = " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(accel_data[2]));
-        NRF_LOG_INFO(""); // Blank line
+        //NRF_LOG_INFO("X = " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(accel_data[0]));
+        //NRF_LOG_INFO("Y = " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(accel_data[1]));
+        //NRF_LOG_INFO("Z = " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(accel_data[2]));
+        //NRF_LOG_INFO(""); // Blank line
 
         return true;
     }
@@ -155,4 +155,5 @@ uint32_t platform_read(uint8_t read_register_address, uint8_t *bufp)
     APP_ERROR_CHECK(err_code);
     return err_code;
 }
+
 

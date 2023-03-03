@@ -61,6 +61,8 @@
       <file file_name="$(StudioDir)/source/thumb_crt0.s" />
     </folder>
     <folder Name="Sensors">
+      <file file_name="../../lsm303agr/collect_accel_data.cc" />
+      <file file_name="../../lsm303agr/collect_accel_data.h" />
       <file file_name="../../lsm303agr/lsm303_interface.c" />
       <file file_name="../../lsm303agr/lsm303_interface.h" />
       <file file_name="../../lsm303agr/lsm303agr_driver.c" />
@@ -245,6 +247,9 @@
     <folder Name="TensorFlowLiteCustom">
       <file file_name="../../TFLite_Top.cpp" />
       <file file_name="../../TFLite_Top.h" />
+      <file file_name="../../constants.h" />
+      <file file_name="../../gesture_predictor.cc" />
+      <file file_name="../../gesture_predictor.h" />
       <file file_name="../../macro_constants.h" />
       <file file_name="../../magic_wand_model_data.cc" />
       <file file_name="../../magic_wand_model_data.h" />

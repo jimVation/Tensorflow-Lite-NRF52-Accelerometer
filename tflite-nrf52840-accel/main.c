@@ -32,10 +32,37 @@ void clock_initialization()
 }
 
 //********************************************************************************************
+void gesture_detection_output(int32_t gesture)
+{
+    switch (gesture)
+    {
+        case 0:  // Wing
+            NRF_LOG_INFO("WING:\n\r*         *         *\n\r *       * *       "
+        "*\n\r  *     *   *     *\n\r   *   *     *   *\n\r    * *       "
+        "* *\n\r     *         *\n\r");
+            break;
+
+        case 1:  // Ring
+            NRF_LOG_INFO("RING:\n\r          *\n\r       *     *\n\r     *         *\n\r "
+        "   *           *\n\r     *         *\n\r       *     *\n\r      "
+        "    *\n\r");
+            break;
+
+        case 2:  // Slope
+            NRF_LOG_INFO("SLOPE:\n\r        *\n\r       *\n\r      *\n\r     *\n\r    "
+        "*\n\r   *\n\r  *\n\r * * * * * * * *\n\r");
+            break;
+
+        default:
+            break;
+    }
+}
+
+//********************************************************************************************
 int main(void)
 {
     float accel_data[NUM_ACCEL_DATA_ELEMENTS] = {0};
-    uint32_t next_data_index = 0;
+    int32_t gesture_type = -1;
 
     clock_initialization();
 
@@ -54,18 +81,12 @@ int main(void)
     setup_tf_system();
     NRF_LOG_INFO("Tensorflow setup complete");
 
-
     while (true)
     {
-        if (read_data_lsm303(&accel_data[next_data_index]))
-        {    
-        // call inference every time there is new data
-            next_data_index += 3;
-
-            if ((next_data_index + 1) >= NUM_ACCEL_DATA_ELEMENTS)
-            {
-                next_data_index = 0;
-            }
+        if (read_data_lsm303(accel_data))
+        {   
+            gesture_type = run_tf_model(accel_data); // pass new data to analyzer system
+            gesture_detection_output(gesture_type);
         }
 
         NRF_LOG_FLUSH();

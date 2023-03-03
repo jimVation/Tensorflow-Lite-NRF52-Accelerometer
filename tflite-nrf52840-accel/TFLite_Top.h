@@ -7,7 +7,7 @@ extern "C" {
 #endif
 
 void setup_tf_system(void);
-void evaluate_tf_model(float operand);
+int32_t run_tf_model(float* new_accel_data);
 
 #ifdef __cplusplus
 }
