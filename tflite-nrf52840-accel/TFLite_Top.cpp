@@ -82,7 +82,7 @@ extern "C" int32_t run_tf_model(float* new_accel_data)
         // It is too slow to run at 25Hz.
         num_updates_count++; 
 
-        if (num_updates_count == 25)  // 25 cycles of new data takes 1 second with accel set to 25Hz
+        if (num_updates_count == 5)  // 25 cycles of new data takes 1 second with accel set to 25Hz
         {
             num_updates_count = 0; // reset counter
 
