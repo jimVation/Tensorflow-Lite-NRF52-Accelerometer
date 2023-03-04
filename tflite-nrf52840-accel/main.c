@@ -54,6 +54,7 @@ void gesture_detection_output(int32_t gesture)
             break;
 
         default:
+            NRF_LOG_INFO("NONE");
             break;
     }
 }

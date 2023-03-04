@@ -31,8 +31,8 @@ constexpr int kNoGesture = 3;
 // these thresholds. Often, increasing the size of the training set will give
 // more robust results though, so consider retraining if you are seeing poor
 // predictions.
-constexpr float kDetectionThreshold = 0.4f;
-constexpr int kPredictionHistoryLength = 3;
-constexpr int kPredictionSuppressionDuration = 25;
+constexpr float kDetectionThreshold = 0.3f;
+constexpr int kPredictionHistoryLength = 1;
+constexpr int kPredictionSuppressionDuration = 5;
 
 #endif  // TENSORFLOW_LITE_MICRO_EXAMPLES_MAGIC_WAND_CONSTANTS_H_

@@ -74,31 +74,34 @@ extern "C" void setup_tf_system(void)
 
 extern "C" int32_t run_tf_model(float* new_accel_data)
 {
-    static int num_runs = 0;
+    static uint32_t num_updates_count = 0;
 
     if (update_accel_data(model_input->data.f, new_accel_data, input_length, false))
     {
-        // Run inference, and report any error.
-        TfLiteStatus invoke_status = interpreter->Invoke();
+        // We slow down the rate of calling the interpreter. 
+        // It is too slow to run at 25Hz.
+        num_updates_count++; 
 
-        //if (invoke_status != kTfLiteOk) 
-        //{
-        //    MicroPrintf("Invoke failed");
-        //    return -1;
-        //}
+        if (num_updates_count == 25)  // 25 cycles of new data takes 1 second with accel set to 25Hz
+        {
+            num_updates_count = 0; // reset counter
 
-        // Analyze the results to obtain a prediction
-        int gesture_index = PredictGesture(interpreter->output(0)->data.f);
+            // Run inference, and report any error.
+            TfLiteStatus invoke_status = interpreter->Invoke();
 
-        num_runs++;
+            if (invoke_status != kTfLiteOk) 
+            {
+                MicroPrintf("Invoke failed");
+                return -1;
+            }
 
-        MicroPrintf("Runs %d, %d", num_runs, gesture_index);
+            // Analyze the results to obtain a prediction
+            int gesture_index = PredictGesture(interpreter->output(0)->data.f);
 
-        return gesture_index;
+            return gesture_index;
+        }
     }
-    else
-    {
-        return -1;
-    }
+
+    return -1;
 }
 
