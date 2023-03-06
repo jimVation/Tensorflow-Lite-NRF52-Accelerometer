@@ -1,4 +1,5 @@
 Tensorflow Lite for nRF52840DK implemented on Nordic nRF52840DK (PCA10056)
+
 Using accelerometer on attached board, X-NUCLEO-IKS01A2
 
 Project is built on the Nordic BSP example.
