@@ -2,6 +2,8 @@
 #include <stdbool.h>
 #include <string.h>
 
+#include "nrf_log.h"
+
 #include "lsm303_interface.h"
 #include "slope_micro_features_data.h"
 #include "ring_micro_features_data.h"
@@ -9,13 +11,23 @@
 #define NUM_STORED_DATA_ELEMENTS  384
 
 // A buffer holding the last 200 sets of 3-channel values
-float save_data[NUM_STORED_DATA_ELEMENTS] = {0.0f};
+float save_data[NUM_STORED_DATA_ELEMENTS] = {0.0f};  // Initialize to an unlikely number
 
 // Most recent position in the save_data buffer
 int next_data_index = 0;
 
 // True if there is not yet enough data to run inference
-bool pending_initial_data = true;
+bool waiting_for_initial_data = true;
+
+typedef enum 
+{
+    NORMAL_ANALYZE_MOODE = 0,
+    TEST_SLOPE_DATA,
+    TEST_RING_DATA,
+}  data_mode_and_type_t;
+
+data_mode_and_type_t  analyze_mode = NORMAL_ANALYZE_MOODE;
+
 
 bool update_accel_data(float* data_to_analyze, float* new_data, int num_samples_requested, bool reset_buffer)
 {
@@ -24,7 +36,7 @@ bool update_accel_data(float* data_to_analyze, float* new_data, int num_samples_
     {
         memset(save_data, 0, NUM_STORED_DATA_ELEMENTS * sizeof(float));
         next_data_index = 0;
-        pending_initial_data = true;
+        waiting_for_initial_data = true;
     }
 
     // Move new data into local array
@@ -40,11 +52,11 @@ bool update_accel_data(float* data_to_analyze, float* new_data, int num_samples_
 
 
     // Check if we are ready for prediction or still waiting more initial data on start up
-    if (pending_initial_data)
+    if (waiting_for_initial_data)
     {
         if (next_data_index >= 200)
         {   // there is enough collected data to continue
-            pending_initial_data = false;
+            waiting_for_initial_data = false;
         } 
         else
         {   // not enough data collected yet
@@ -62,10 +74,24 @@ bool update_accel_data(float* data_to_analyze, float* new_data, int num_samples_
             ring_array_index += NUM_STORED_DATA_ELEMENTS;
         }
 
-        data_to_analyze[i] = save_data[ring_array_index];
+        switch (analyze_mode)
+        {
+            case NORMAL_ANALYZE_MOODE:
+                data_to_analyze[i] = save_data[ring_array_index];
+                break;
 
-        // for testing (comment out line above)
-        //data_to_analyze[i] = g_ring_micro_f9643d42_nohash_4_data[ring_array_index];
+            case TEST_SLOPE_DATA:
+                data_to_analyze[i] = g_slope_micro_f2e59fea_nohash_1_data[ring_array_index];
+                break;
+
+            case TEST_RING_DATA:
+                data_to_analyze[i] = g_ring_micro_f9643d42_nohash_4_data[ring_array_index];
+                break;
+            
+            default:
+                NRF_LOG_INFO("Invalid analyze mode");
+                break;
+        }
     }
     return true;
 }

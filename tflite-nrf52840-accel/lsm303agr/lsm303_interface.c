@@ -102,6 +102,7 @@ bool read_data_lsm303(float* accel_data)
 {
     uint8_t ready_flag = 0;
     int16_t data_raw_acceleration[NUM_AXIS];
+    static uint32_t sample_counter = 0;
 
     lsm303agr_xl_data_ready_get(&ready_flag);
 
@@ -111,13 +112,20 @@ bool read_data_lsm303(float* accel_data)
         memset(data_raw_acceleration, 0x00, 3 * sizeof(int16_t));  // Zero each time in case the read fails
         lsm303agr_acceleration_raw_get(data_raw_acceleration);
         accel_data[0] = lsm303agr_from_fs_2g_hr_to_mg(data_raw_acceleration[0]);
-        accel_data[1] = lsm303agr_from_fs_2g_hr_to_mg(data_raw_acceleration[1]);
+        // invert the x to match the orientation in the provided data, which was sampled with the sparkfun edge board
+        accel_data[1] = -1.0f * lsm303agr_from_fs_2g_hr_to_mg(data_raw_acceleration[1]);
         accel_data[2] = lsm303agr_from_fs_2g_hr_to_mg(data_raw_acceleration[2]);
 
         //NRF_LOG_INFO("X = " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(accel_data[0]));
         //NRF_LOG_INFO("Y = " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(accel_data[1]));
         //NRF_LOG_INFO("Z = " NRF_LOG_FLOAT_MARKER, NRF_LOG_FLOAT(accel_data[2]));
         //NRF_LOG_INFO(""); // Blank line
+
+        sample_counter++;
+        if ((sample_counter % 25) == 0)  // Check if one second has passed (according to accel sample rate)
+        {
+            NRF_LOG_INFO("Seconds = %d", sample_counter / 25);
+        }
 
         return true;
     }

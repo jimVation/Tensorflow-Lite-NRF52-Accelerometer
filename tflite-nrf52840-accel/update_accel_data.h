@@ -1,5 +1,5 @@
-#ifndef COLLECT_ACCEL_DATA_H
-#define COLLECT_ACCEL_DATA_H
+#ifndef UPDATE_ACCEL_DATA_H
+#define UPDATE_ACCEL_DATA_H
 
 #include <stdbool.h>
 

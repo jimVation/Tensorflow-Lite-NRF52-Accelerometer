@@ -62,8 +62,6 @@
       <file file_name="$(StudioDir)/source/thumb_crt0.s" />
     </folder>
     <folder Name="Sensors">
-      <file file_name="../../lsm303agr/collect_accel_data.cc" />
-      <file file_name="../../lsm303agr/collect_accel_data.h" />
       <file file_name="../../lsm303agr/lsm303_interface.c" />
       <file file_name="../../lsm303agr/lsm303_interface.h" />
       <file file_name="../../lsm303agr/lsm303agr_driver.c" />
@@ -143,13 +141,13 @@
       </file>
       <file file_name="../../../../tflite-micro/tensorflow/lite/micro/kernels/if.cc" />
       <file file_name="../../../../tflite-micro/tensorflow/lite/micro/kernels/kernel_runner.cc" />
+      <file file_name="../../../../tflite-micro/tensorflow/lite/micro/kernels/kernel_util.cc">
+        <configuration Name="Debug" build_exclude_from_build="No" />
+      </file>
       <file file_name="../../../../tflite-micro/tensorflow/lite/kernels/kernel_util.cc">
         <configuration
           Name="Common"
           build_object_file_name="$(IntDir)/kernel_util_2$(OBJ)" />
-      </file>
-      <file file_name="../../../../tflite-micro/tensorflow/lite/micro/kernels/kernel_util.cc">
-        <configuration Name="Debug" build_exclude_from_build="No" />
       </file>
       <file file_name="../../../../tflite-micro/tensorflow/lite/micro/kernels/l2_pool_2d.cc" />
       <file file_name="../../../../tflite-micro/tensorflow/lite/micro/kernels/l2norm.cc" />
@@ -259,6 +257,8 @@
       <file file_name="../../magic_wand_model_data.cc" />
       <file file_name="../../magic_wand_model_data.h" />
       <file file_name="../../micro_log.cc" />
+      <file file_name="../../update_accel_data.cc" />
+      <file file_name="../../update_accel_data.h" />
     </folder>
     <folder Name="nRF_Drivers">
       <file file_name="C:/Nordic_SDKs/nRF5_SDK_17.0.2_d674dde/integration/nrfx/legacy/nrf_drv_twi.c" />

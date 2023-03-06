@@ -6,7 +6,7 @@
 
 #include "gesture_predictor.h"
 #include "TFLite_Top.h"
-#include "collect_accel_data.h"
+#include "update_accel_data.h"
 
 #define CHANNEL_NUMBER 3
 
@@ -79,10 +79,10 @@ extern "C" int32_t run_tf_model(float* new_accel_data)
     if (update_accel_data(model_input->data.f, new_accel_data, input_length, false))
     {
         // We slow down the rate of calling the interpreter. 
-        // It is too slow to run at 25Hz.
+        // The interpreter is too slow to run at 25Hz.
         num_updates_count++; 
 
-        if (num_updates_count == 5)  // 25 cycles of new data takes 1 second with accel set to 25Hz
+        if (num_updates_count == 2)  // 25 cycles of new data takes 1 second with accel set to 25Hz
         {
             num_updates_count = 0; // reset counter
 
